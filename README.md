@@ -7,17 +7,13 @@
 
 <h1 align="center">Real-time Formula 1 telemetry and timing</h1>
 
-## f1-dash
+## HYPERACING
 
-A real-time F1 dashboard that shows the leader board, tires, gaps, laps, mini sectors and much more
+A data driven, interactive motorsports betting app
 
-## contributing
+## details
 
-I really appreciate it if you want to contribute to this project. I can recommend the GitHub issues marked as "Good First Issue" to get started. Also please read [`CONTRIBUTING.md`](CONTRIBUTING.md) to learn how to contribute and setup f1-dash on your local machine for development.
-
-## supporting
-
-If you want to support me and make me focus more on this project, support me here by [buying me a coffee](https://www.buymeacoffee.com/slowlydev).
+the F1 Analytics dashboard is a fork of F1-Dash made by SlowlyDev (https://github.com/slowlydev/f1-dash)
 
 ## notice
 
