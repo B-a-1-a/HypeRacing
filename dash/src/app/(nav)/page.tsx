@@ -50,7 +50,7 @@ export default function Home() {
 				<p className="text-md">
 					I am currently working on v3 of the dashboard. Which will allow more customization and have an updated design.
 					I will also try to improve mobile UI and ship new cool features. If you have any suggestions or feedback, feel
-					free to reach out on GitHub or the Discord.
+					free to reach out through the Help section.
 				</p>
 			</section>
 
