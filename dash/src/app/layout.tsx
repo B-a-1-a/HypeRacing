@@ -7,6 +7,7 @@ import { env } from "@/env.mjs";
 
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
+import { AuthProvider } from '../hooks/useAuth';
 
 export { metadata } from "@/metadata";
 export { viewport } from "@/viewport";
@@ -25,7 +26,11 @@ export default function RootLayout({ children }: Props) {
 				<Script async defer data-website-id={env.NEXT_PUBLIC_TRACKING_ID} src={env.NEXT_PUBLIC_TRACKING_URL} />
 			)}
 
-			<body>{children}</body>
+			<body>
+				<AuthProvider>
+					{children}
+				</AuthProvider>
+			</body>
 		</html>
 	);
 }

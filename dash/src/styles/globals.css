@@ -2,6 +2,91 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+	:root {
+		--background: 0 0% 0%;
+		--foreground: 0 0% 100%;
+
+		--card: 0 0% 4%;
+		--card-foreground: 0 0% 100%;
+
+		--popover: 0 0% 4%;
+		--popover-foreground: 0 0% 100%;
+
+		--primary: 183 100% 42%;
+		--primary-foreground: 0 0% 0%;
+
+		--secondary: 0 0% 9%;
+		--secondary-foreground: 0 0% 100%;
+
+		--muted: 0 0% 9%;
+		--muted-foreground: 0 0% 60%;
+
+		--accent: 183 100% 42%;
+		--accent-foreground: 0 0% 0%;
+
+		--destructive: 0 84% 60%;
+		--destructive-foreground: 0 0% 100%;
+
+		--border: 0 0% 20%;
+		--input: 0 0% 20%;
+		--ring: 183 100% 42%;
+
+		--radius: 0.5rem;
+	}
+}
+
+@layer base {
+	* {
+		@apply border-border;
+	}
+	body {
+		@apply bg-background text-foreground;
+	}
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+	width: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: #000;
+}
+
+::-webkit-scrollbar-thumb {
+	background: rgba(6, 182, 212, 0.5);
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: rgba(6, 182, 212, 0.8);
+}
+
+/* Neon text effect */
+.neon-text {
+	text-shadow: 0 0 5px rgba(6, 182, 212, 0.7), 0 0 10px rgba(6, 182, 212, 0.5);
+}
+
+/* Racing line animation */
+@keyframes racingLine {
+	0% {
+		transform: translateX(-100%);
+	}
+	100% {
+		transform: translateX(100%);
+	}
+}
+
+.racing-line {
+	animation: racingLine 8s linear infinite;
+}
+
+/* Smooth scrolling */
+html {
+	scroll-behavior: smooth;
+}
+
 .pulse-loading-spinner {
 	animation: pulse-loading 1.2s cubic-bezier(0.52, 0.6, 0.25, 0.99) infinite;
 }
@@ -16,3 +101,4 @@
 		opacity: 0;
 	}
 }
+

@@ -1,10 +1,10 @@
 import { Metadata } from "next";
 
-const title = "f1-dash | Formula 1 live timing";
+const title = "HypeRacing | Formula 1 live timing";
 const description =
 	"Experience live telemetry and timing data from Formula 1 races. Get insights into leaderboards, tire choices, gaps, lap times, sector times, team radios, and more.";
 
-const url = "https://f1-dash.com";
+const url = "https://hype-racing.com";
 
 export const metadata: Metadata = {
 	generator: "Next.js",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 		description,
 		url,
 		type: "website",
-		siteName: "F1 Realtime Dashboard",
+		siteName: "HypeRacing",
 		images: [
 			{
 				alt: "Realtime Formula 1 Dashboard",
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
 
 	referrer: "strict-origin-when-cross-origin",
 
-	keywords: ["Formula 1", "f1 dashboard", "realtime telemetry", "f1 timing", "live updates"],
+	keywords: ["Formula 1", "HypeRacing", "realtime telemetry", "f1 timing", "live updates"],
 
 	creator: "Slowlydev",
 	publisher: "Slowlydev",
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
 
 	appleWebApp: {
 		capable: true,
-		title: "f1-dash",
+		title: "HypeRacing",
 		statusBarStyle: "black-translucent",
 	},
 

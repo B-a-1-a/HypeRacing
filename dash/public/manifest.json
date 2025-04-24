@@ -1,6 +1,6 @@
 {
-	"name": "f1-dash",
-	"short_name": "f1-dash",
+	"name": "HypeRacing",
+	"short_name": "HypeRacing",
 	"start_url": "/",
 	"display": "standalone",
 	"background_color": "#000000",
