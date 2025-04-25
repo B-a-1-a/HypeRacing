@@ -14,8 +14,6 @@ To get started with the frontend do the following
 > you will need 4 sessions. (frontend, live backend, api backend, simulator)
 
 ```bash
-# clone the repository or your fork
-git clone git@github.com:slowlydev/f1-dash.git
 
 # go to the frontend
 cd dash/
@@ -30,13 +28,13 @@ corepack enable
 corepack install
 
 # install frontend dependencies
-yarn
+npm install
 
 # copy the env example and maybe adjust envs if some ports are already in use
 cp .env.example .env
 
 # to start development
-yarn dev
+npm run dev
 ```
 
 Before we can use frontend and start developing it, we need to setup the backend.
