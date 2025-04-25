@@ -1,30 +1,41 @@
-FROM node:20-alpine AS dependencies
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
-
-FROM dependencies AS builder
-ARG LIVE_SOCKET_URL=""
-ARG API_URL=""
-
-ENV NEXT_PUBLIC_LIVE_SOCKET_URL=$LIVE_SOCKET_URL
-ENV NEXT_PUBLIC_API_URL=$API_URL
+FROM node:18-alpine
 
 WORKDIR /app
+
+# Copy package files
+COPY package.json ./
+
+# Install node modules with npm
+RUN npm install
+
+# Copy the rest of the app
 COPY . .
+
+# Set environment variables - including all Firebase config
+ENV NEXT_PUBLIC_LIVE_SOCKET_URL=ws://147.182.132.26:4000
+ENV NEXT_PUBLIC_API_URL=http://147.182.132.26:4001
+ENV SKIP_ENV_VALIDATION=1
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS=--max_old_space_size=2048
+
+# Firebase configuration
+ENV NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyC2sLlSxUdDFDQ_iB8POQhBZMqgGXMIYJA
+ENV NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=racebettingapp.firebaseapp.com
+ENV NEXT_PUBLIC_FIREBASE_PROJECT_ID=racebettingapp
+ENV NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=racebettingapp.firebasestorage.app
+ENV NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=759480069787
+ENV NEXT_PUBLIC_FIREBASE_APP_ID=1:759480069787:web:f98c3f144a034087d1603e
+ENV NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-VLJWPH04M7
+
+# Build the app with static export to avoid prerendering issues
 RUN npm run build
 
-FROM node:20-alpine AS runner
-WORKDIR /app
+# Set runtime environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
 
-ENV NODE_ENV production
-
-COPY --from=builder /app/next.config.mjs ./
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-
+# Expose the port
 EXPOSE 3000
 
+# Start the app
 CMD ["npm", "start"]
