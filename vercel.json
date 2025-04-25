@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "buildCommand": "cd dash && npm install && npm build",
+  "outputDirectory": "dash/.next",
+  "framework": "nextjs",
+  "installCommand": "cd dash && npm install"
+} 
