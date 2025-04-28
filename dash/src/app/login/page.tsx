@@ -9,11 +9,16 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { signIn, loading } = useAuth();
+  const { signIn, loading, isConfigured } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    if (!isConfigured) {
+      setError('Firebase authentication is not configured. Please check your environment variables.');
+      return;
+    }
     
     if (!email || !password) {
       setError('Please enter both email and password');
@@ -32,32 +37,45 @@ export default function Login() {
         <Link href="/" className="mb-8 flex items-center gap-2">
           <span className="text-xl font-bold">HypeRacing</span>
         </Link>
-        <div className="w-full max-w-md space-y-6 rounded-lg border border-zinc-800 bg-zinc-950 p-6 shadow-[0_0_15px_rgba(6,182,212,0.15)]">
-          <div className="space-y-2 text-center">
-            <h1 className="text-3xl font-bold">Sign In</h1>
-            <p className="text-zinc-400">Enter your email to sign in to your account</p>
+        
+        <div className="w-full max-w-md space-y-8 bg-zinc-950 p-8 rounded-xl border border-zinc-800">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold">Sign In</h2>
+            <p className="mt-2 text-sm text-zinc-400">
+              Welcome back! Please enter your details.
+            </p>
           </div>
           
-          {error && (
-            <div className="p-4 bg-red-950/50 text-red-400 rounded-md text-sm border border-red-900/50">
-              {error}
+          {!isConfigured && (
+            <div className="bg-red-900/30 border border-red-700 text-white p-3 rounded-md">
+              <p className="text-sm">
+                <strong>Configuration Error:</strong> Firebase authentication is not properly configured. 
+                Please check your environment variables.
+              </p>
             </div>
           )}
           
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-900/30 border border-red-700 text-white p-3 rounded-md">
+              <p className="text-sm">{error}</p>
+            </div>
+          )}
+          
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <label htmlFor="email" className="block text-sm font-medium">
-                Email
+                Email address
               </label>
               <input
                 id="email"
                 name="email"
                 type="email"
+                autoComplete="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-3 py-2 border border-zinc-800 bg-zinc-900 rounded-md focus:border-cyan-500 focus:ring-cyan-500"
-                placeholder="m@example.com"
+                placeholder="your@email.com"
               />
             </div>
             
@@ -84,7 +102,7 @@ export default function Login() {
             
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !isConfigured}
               className="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-medium py-2 px-4 rounded-md disabled:opacity-50"
             >
               {loading ? 'Signing in...' : 'Sign In'}

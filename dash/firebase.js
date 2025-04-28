@@ -14,19 +14,38 @@ import {
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "",
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || ""
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
-const auth = getAuth(app);
+// Initialize Firebase only if configuration is valid
+const isValidConfig = firebaseConfig.apiKey && 
+                     firebaseConfig.authDomain && 
+                     firebaseConfig.projectId &&
+                     firebaseConfig.appId;
+
+let app, analytics, auth;
+
+if (isValidConfig) {
+  try {
+    app = initializeApp(firebaseConfig);
+    analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+    auth = getAuth(app);
+  } catch (error) {
+    console.error("Firebase initialization error:", error);
+  }
+} else {
+  console.error("Firebase configuration is incomplete. Authentication will not work.");
+  // Create dummy implementations to prevent crashes
+  auth = {
+    currentUser: null,
+  };
+}
 
 export { 
   auth, 

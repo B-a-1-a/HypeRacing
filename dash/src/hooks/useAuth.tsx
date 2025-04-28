@@ -9,7 +9,7 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged
 } from '../../firebase';
-import { User as FirebaseUser } from 'firebase/auth';
+import { User as FirebaseUser, Auth } from 'firebase/auth';
 import Cookies from 'js-cookie';
 
 interface AuthContextType {
@@ -18,14 +18,24 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signUp: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
+  isConfigured: boolean;
 }
+
+// Check if Firebase is properly configured
+const isFirebaseConfigured = Boolean(
+  process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
+  process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN &&
+  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID &&
+  process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+);
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  signIn: async () => ({ success: false }),
-  signUp: async () => ({ success: false }),
+  signIn: async () => ({ success: false, error: 'Firebase is not configured' }),
+  signUp: async () => ({ success: false, error: 'Firebase is not configured' }),
   signOut: async () => {},
+  isConfigured: isFirebaseConfigured
 });
 
 // Set auth token in cookies for middleware
@@ -48,7 +58,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Listen for auth state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    if (!isFirebaseConfigured) {
+      setLoading(false);
+      return () => {};
+    }
+    
+    const unsubscribe = onAuthStateChanged(auth as Auth, async (currentUser) => {
       setUser(currentUser);
       
       if (currentUser) {
@@ -68,9 +83,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Sign in with email and password
   const signIn = async (email: string, password: string) => {
+    if (!isFirebaseConfigured) {
+      return { 
+        success: false, 
+        error: 'Firebase authentication is not configured. Please check your environment variables.' 
+      };
+    }
+    
     try {
       setLoading(true);
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth as Auth, email, password);
       const token = await userCredential.user.getIdToken();
       setAuthCookie(token);
       router.push('/dashboard');
@@ -88,9 +110,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Sign up with email and password
   const signUp = async (email: string, password: string) => {
+    if (!isFirebaseConfigured) {
+      return { 
+        success: false, 
+        error: 'Firebase authentication is not configured. Please check your environment variables.' 
+      };
+    }
+    
     try {
       setLoading(true);
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth as Auth, email, password);
       const token = await userCredential.user.getIdToken();
       setAuthCookie(token);
       router.push('/dashboard');
@@ -108,8 +137,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Sign out
   const signOut = async () => {
+    if (!isFirebaseConfigured) {
+      router.push('/login');
+      return;
+    }
+    
     try {
-      await firebaseSignOut(auth);
+      await firebaseSignOut(auth as Auth);
       setAuthCookie(null);
       router.push('/login');
     } catch (error) {
@@ -124,6 +158,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       signIn,
       signUp,
       signOut,
+      isConfigured: isFirebaseConfigured
     }}>
       {children}
     </AuthContext.Provider>
