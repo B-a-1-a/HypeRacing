@@ -1,0 +1,16 @@
+   [Unit]
+   Description=F1 Dash Live Backend
+   After=network.target
+   
+   [Service]
+   Type=simple
+   User=root
+   WorkingDirectory=/root/HypeRacing
+   ExecStart=/root/HypeRacing/target/release/live
+   Restart=on-failure
+   Environment="RUST_LOG=info"
+   Environment="LIVE_BACKEND_ADDRESS=0.0.0.0:4000"
+   Environment="ORIGIN=http://104.248.237.41"
+   
+   [Install]
+   WantedBy=multi-user.target

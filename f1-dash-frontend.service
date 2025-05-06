@@ -1,0 +1,16 @@
+   [Unit]
+   Description=F1 Dash Frontend
+   After=network.target
+   
+   [Service]
+   Type=simple
+   User=root
+   WorkingDirectory=/root/HypeRacing/dash
+   ExecStart=/usr/bin/npm start
+   Restart=on-failure
+   Environment="NODE_ENV=production"
+   Environment="PORT=3000"
+   Environment="HOSTNAME=0.0.0.0"
+   
+   [Install]
+   WantedBy=multi-user.target

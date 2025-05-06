@@ -1,0 +1,16 @@
+   [Unit]
+   Description=F1 Dash API Backend
+   After=network.target
+   
+   [Service]
+   Type=simple
+   User=root
+   WorkingDirectory=/root/HypeRacing
+   ExecStart=/root/HypeRacing/target/release/api
+   Restart=on-failure
+   Environment="RUST_LOG=info"
+   Environment="API_BACKEND_ADDRESS=0.0.0.0:4001"
+   Environment="ORIGIN=http://104.248.237.41"
+   
+   [Install]
+   WantedBy=multi-user.target

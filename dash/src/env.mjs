@@ -5,7 +5,7 @@ const server = z.object({
 });
 
 const client = z.object({
-	NEXT_PUBLIC_LIVE_SOCKET_URL: z.string().min(1).includes("http"),
+	NEXT_PUBLIC_LIVE_SOCKET_URL: z.string().min(1),
 	NEXT_PUBLIC_API_URL: z.string().min(1).includes("http"),
 
 	NEXT_PUBLIC_TRACKING_ID: z.string().optional(),
