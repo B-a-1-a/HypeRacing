@@ -181,7 +181,7 @@ export default function LandingPage() {
               <div className="flex items-center justify-center">
                 <div className="relative h-[350px] w-[300px] sm:h-[400px] sm:w-[350px] lg:h-[500px] lg:w-[400px] xl:h-[600px] xl:w-[500px] rounded-xl overflow-hidden border-2 border-zinc-800 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
                   <Image
-                    src="/placeholder.svg?height=600&width=500"
+                    src="/f1-dash-image.jpeg"
                     alt="HypeRacing App Screenshot"
                     fill
                     className="object-cover"
