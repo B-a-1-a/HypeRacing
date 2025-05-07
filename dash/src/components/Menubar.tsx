@@ -47,7 +47,7 @@ export default function Menubar({ connected }: Props) {
 	};
 
 	useEffect(() => {
-		router.prefetch("/");
+		router.prefetch("/home");
 		router.prefetch("/dashboard");
 		router.prefetch("/schedule");
 		router.prefetch("/settings");
@@ -57,7 +57,7 @@ export default function Menubar({ connected }: Props) {
 	return (
 		<div className="flex select-none flex-wrap gap-x-4 gap-y-2 px-2 justify-between w-full" id="walkthrough-menu">
 			<div className="flex flex-wrap gap-x-4 gap-y-2">
-				<motion.a className="cursor-pointer" whileTap={{ scale: 0.95 }} onClick={() => liveTimingGuard("/")}>
+				<motion.a className="cursor-pointer" whileTap={{ scale: 0.95 }} onClick={() => liveTimingGuard("/home")}>
 					Home
 				</motion.a>
 				{/* TODO add spoiler guard (check if race is in progress, then show modal) */}
