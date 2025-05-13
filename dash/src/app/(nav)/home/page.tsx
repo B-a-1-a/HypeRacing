@@ -1,8 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ChevronDown } from "lucide-react"
 import Link from "next/link"
+import useAuth from "../../../hooks/useAuth"
+import { getOdds, placeBet, getUserBets } from "../../../lib/firebase-service"
 
 interface Driver {
   code: string
@@ -23,15 +25,31 @@ interface RaceData {
   gap: string
 }
 
-interface DriverOdds {
-  driver: Driver | undefined
-  odds: Record<string, string>
+interface Bet {
+  id: string
+  driver: string
+  position: string
+  amount: number
+  odds: number
+  potentialWinnings: number
+  status: string
+  createdAt: any
 }
 
 export default function HomePage() {
+  const { user, profile, loading: authLoading } = useAuth()
   const [selectedDriver, setSelectedDriver] = useState("")
   const [selectedPosition, setSelectedPosition] = useState("")
+  const [betAmount, setBetAmount] = useState(10)
   const [showOdds, setShowOdds] = useState(false)
+  const [oddsList, setOddsList] = useState<Record<string, number[][]>>({})
+  const [firebaseOdds, setFirebaseOdds] = useState<any>(null)
+  const [loadingOdds, setLoadingOdds] = useState(true)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
+  const [currentOdds, setCurrentOdds] = useState(0)
+  const [userBets, setUserBets] = useState<Bet[]>([])
+  const [loadingBets, setLoadingBets] = useState(true)
 
   // F1 Drivers data
   const drivers: Driver[] = [
@@ -80,33 +98,105 @@ export default function HomePage() {
     { code: "VER", lapTime: "1:27.45", gap: "+0.54s" },
   ]
 
-  // Generate random odds for positions
-  const generateOdds = (driverCode: string): Record<string, string> => {
-    const positions = Array.from({ length: 20 }, (_, i) => `P${i + 1}`)
-    const odds: Record<string, string> = {}
+  // Load Firebase odds
+  useEffect(() => {
+    async function loadOdds() {
+      try {
+        setLoadingOdds(true);
+        const odds = await getOdds();
+        if (odds && odds.data) {
+          setFirebaseOdds(odds.data);
+        }
+      } catch (err) {
+        console.error("Error loading odds:", err);
+        setError("Failed to load odds data");
+      } finally {
+        setLoadingOdds(false);
+      }
+    }
 
-    // Base odds depending on driver's current standing
-    const driverIndex = drivers.findIndex((d) => d.code === driverCode)
-    const baseOdds = driverIndex < 5 ? 2.5 : driverIndex < 10 ? 5 : 10
+    loadOdds();
+  }, []);
 
-    positions.forEach((pos, index) => {
-      // Generate odds based on position and driver ranking
-      const positionNumber = Number.parseInt(pos.substring(1))
-      const driverRank = driverIndex + 1
+  // Load user bets
+  useEffect(() => {
+    async function loadBets() {
+      if (!user) {
+        setLoadingBets(false);
+        return;
+      }
 
-      // Drivers have better odds near their current ranking
-      const difference = Math.abs(positionNumber - driverRank)
-      const multiplier = difference === 0 ? 1 : 1 + difference * 0.5
+      try {
+        setLoadingBets(true);
+        const userBets = await getUserBets(user.uid);
+        setUserBets(userBets);
+      } catch (err) {
+        console.error("Error loading bets:", err);
+        setError("Failed to load your bets");
+      } finally {
+        setLoadingBets(false);
+      }
+    }
 
-      // Calculate final odds with some randomness
-      const randomFactor = 0.8 + Math.random() * 0.4 // 0.8 to 1.2
-      const finalOdds = (baseOdds * multiplier * randomFactor).toFixed(1)
+    loadBets();
+  }, [user, success]);
 
-      odds[pos] = finalOdds
-    })
+  // Generate consistent odds for positions
+  useEffect(() => {
+    // If Firebase odds are available, don't use the generated odds
+    if (firebaseOdds) return;
+    
+    // Generate fixed odds only once on the client side
+    const generateFixedOdds = () => {
+      const result: Record<string, number[][]> = {};
+      
+      drivers.forEach((driver) => {
+        // Create consistent odds for each driver
+        const driverIndex = drivers.findIndex((d) => d.code === driver.code);
+        const baseOdds = driverIndex < 5 ? 2.5 : driverIndex < 10 ? 5 : 10;
+        
+        // For positions P1-P7 shown in the table
+        const tableOdds = Array.from({ length: 7 }, (_, i) => {
+          const position = i + 1;
+          const difference = Math.abs(position - (driverIndex + 1));
+          const multiplier = difference === 0 ? 1 : 1 + difference * 0.5;
+          // Use driver code and position to create a deterministic "random" factor
+          const seed = (driver.code.charCodeAt(0) + position) % 40 / 100 + 0.8; // 0.8 to 1.2
+          return parseFloat((baseOdds * multiplier * seed).toFixed(1));
+        });
+        
+        // For the odds selection grid (P1-P20)
+        const allOdds = Array.from({ length: 20 }, (_, i) => {
+          const position = i + 1;
+          const difference = Math.abs(position - (driverIndex + 1));
+          const multiplier = difference === 0 ? 1 : 1 + difference * 0.5;
+          // Use driver code and position to create a deterministic "random" factor
+          const seed = (driver.code.charCodeAt(0) + position) % 40 / 100 + 0.8; // 0.8 to 1.2
+          return parseFloat((baseOdds * multiplier * seed).toFixed(1));
+        });
+        
+        result[driver.code] = [tableOdds, allOdds];
+      });
+      
+      return result;
+    };
+    
+    setOddsList(generateFixedOdds());
+  }, [firebaseOdds]);
 
-    return odds
-  }
+  // Update current odds when selection changes
+  useEffect(() => {
+    if (selectedDriver && selectedPosition) {
+      if (firebaseOdds && firebaseOdds[selectedDriver]) {
+        setCurrentOdds(firebaseOdds[selectedDriver][selectedPosition]);
+      } else if (oddsList[selectedDriver]) {
+        const positionIndex = parseInt(selectedPosition.substring(1)) - 1;
+        setCurrentOdds(oddsList[selectedDriver][1][positionIndex]);
+      }
+    } else {
+      setCurrentOdds(0);
+    }
+  }, [selectedDriver, selectedPosition, firebaseOdds, oddsList]);
 
   // Handle driver selection
   const handleDriverSelect = (driverCode: string) => {
@@ -115,27 +205,48 @@ export default function HomePage() {
     setShowOdds(true)
   }
 
-  // Get driver odds
-  const getDriverOdds = (): DriverOdds | null => {
-    if (!selectedDriver) return null
-
-    return {
-      driver: drivers.find((d) => d.code === selectedDriver),
-      odds: generateOdds(selectedDriver),
-    }
-  }
-
-  const driverOdds = getDriverOdds()
-
   // Check if HYPE button should be enabled
-  const isHypeEnabled = selectedDriver && selectedPosition
+  const isHypeEnabled = selectedDriver && selectedPosition && betAmount > 0 && (!profile || betAmount <= profile.points);
 
-  // Handle HYPE button click
-  const handleHypeClick = () => {
-    if (!isHypeEnabled) return
+  // Handle HYPE button click (place bet)
+  const handleHypeClick = async () => {
+    if (!isHypeEnabled) return;
+    
+    setError('');
+    setSuccess('');
 
-    // Here you would handle the bet placement
-    alert(`Bet placed on ${selectedDriver} to finish ${selectedPosition}!`)
+    if (!user) {
+      setError('You must be logged in to place a bet');
+      return;
+    }
+
+    if (betAmount <= 0) {
+      setError('Bet amount must be greater than 0');
+      return;
+    }
+
+    if (profile && betAmount > profile.points) {
+      setError('Not enough points');
+      return;
+    }
+
+    try {
+      await placeBet(user.uid, {
+        driver: selectedDriver,
+        position: selectedPosition,
+        amount: parseInt(betAmount.toString(), 10),
+        odds: currentOdds,
+      });
+
+      setSuccess('Bet placed successfully!');
+      setBetAmount(10);
+      setSelectedDriver('');
+      setSelectedPosition('');
+      setShowOdds(false);
+    } catch (err: any) {
+      console.error("Error placing bet:", err);
+      setError(err.message);
+    }
   }
 
   return (
@@ -144,11 +255,19 @@ export default function HomePage() {
       <header className="bg-black border-b border-gray-800">
         <div className="container mx-auto px-4 py-4">
           {/* Logo */}
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-between items-center mb-6">
             <div className="text-4xl font-bold">
               <span className="text-white">Hype</span>
               <span className="text-cyan-400">Racing</span>
             </div>
+            
+            {/* User Points */}
+            {!authLoading && profile && (
+              <div className="bg-gray-900 px-4 py-2 rounded-lg border border-gray-800">
+                <div className="text-sm text-gray-400">Your HypePoints</div>
+                <div className="text-xl font-bold text-cyan-400">{profile.points.toLocaleString()}</div>
+              </div>
+            )}
           </div>
 
           {/* Navigation - Simplified to just HOME */}
@@ -164,6 +283,14 @@ export default function HomePage() {
       <main className="flex-1 container mx-auto px-4 py-8">
         {/* HYPE Betting Section */}
         <div className="mb-8 bg-gray-900 rounded-lg shadow-md p-6 border border-gray-800">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold mb-4">
+              <span className="text-white">HYPE</span> <span className="text-cyan-400">Betting</span>
+            </h2>
+            {error && <div className="mb-4 p-2 bg-red-900/50 text-red-200 rounded">{error}</div>}
+            {success && <div className="mb-4 p-2 bg-green-900/50 text-green-200 rounded">{success}</div>}
+          </div>
+          
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="w-full md:w-1/3">
               <div className="relative">
@@ -171,15 +298,48 @@ export default function HomePage() {
                   className="w-full p-3 border border-gray-700 rounded-md appearance-none bg-gray-800 text-white pr-10"
                   value={selectedDriver}
                   onChange={(e) => handleDriverSelect(e.target.value)}
+                  disabled={loadingOdds}
                 >
                   <option value="">Select Driver</option>
-                  {drivers.map((driver) => (
-                    <option key={driver.code} value={driver.code}>
-                      {driver.name} ({driver.code})
-                    </option>
-                  ))}
+                  {loadingOdds ? (
+                    <option disabled>Loading drivers...</option>
+                  ) : (
+                    (firebaseOdds ? Object.keys(firebaseOdds) : drivers.map(d => d.code)).map((driverCode) => {
+                      const driver = drivers.find(d => d.code === driverCode);
+                      return (
+                        <option key={driverCode} value={driverCode}>
+                          {driver ? `${driver.name} (${driverCode})` : driverCode}
+                        </option>
+                      );
+                    })
+                  )}
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              </div>
+            </div>
+
+            <div className="w-full md:w-1/3">
+              <div className="text-center">
+                <input 
+                  type="number" 
+                  className="w-full p-3 border border-gray-700 rounded-md bg-gray-800 text-white text-center"
+                  min="1"
+                  max={profile ? profile.points : 1000}
+                  value={betAmount}
+                  disabled={!selectedDriver || !selectedPosition}
+                  onChange={(e) => setBetAmount(parseInt(e.target.value, 10))}
+                  placeholder="Bet Amount"
+                />
+                {profile && selectedDriver && selectedPosition && (
+                  <p className="text-sm text-gray-400 mt-1">Available: {profile.points} points</p>
+                )}
+
+                {currentOdds > 0 && (
+                  <div className="mt-2 p-2 bg-gray-800/50 rounded">
+                    <p className="font-semibold text-cyan-400">Odds: {currentOdds.toFixed(2)}</p>
+                    <p className="text-white">Potential Win: {(betAmount * currentOdds).toFixed(2)} points</p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -192,34 +352,99 @@ export default function HomePage() {
             >
               HYPE
             </button>
+          </div>
 
-            <div className="w-full md:w-1/3">
-              {showOdds && driverOdds && (
-                <div className="text-center md:text-right">
-                  <p className="font-bold text-white mb-2">Select Position</p>
-                  <div className="grid grid-cols-5 gap-2">
-                    {Object.entries(driverOdds.odds)
-                      .slice(0, 20)
-                      .map(([position, odd]) => (
-                        <div
-                          key={position}
-                          className={`text-center p-2 rounded cursor-pointer transition-all ${
-                            selectedPosition === position
-                              ? "bg-cyan-500 text-black font-bold"
-                              : "bg-gray-800 hover:bg-gray-700"
-                          }`}
-                          onClick={() => setSelectedPosition(position)}
-                        >
-                          <div className="text-xs">{position}</div>
-                          <div className="font-bold">{odd}</div>
-                        </div>
-                      ))}
-                  </div>
+          <div className="w-full mt-4">
+            {showOdds && selectedDriver && (
+              <div className="text-center">
+                <p className="font-bold text-white mb-2">Select Position</p>
+                <div className="grid grid-cols-5 gap-2">
+                  {Array.from({ length: 20 }, (_, i) => {
+                    const position = `P${i + 1}`;
+                    const odd = firebaseOdds ? 
+                      firebaseOdds[selectedDriver]?.[position] : 
+                      oddsList[selectedDriver]?.[1][i];
+                    
+                    return (
+                      <div
+                        key={position}
+                        className={`text-center p-2 rounded cursor-pointer transition-all ${
+                          selectedPosition === position
+                            ? "bg-cyan-500 text-black font-bold"
+                            : "bg-gray-800 hover:bg-gray-700"
+                        }`}
+                        onClick={() => setSelectedPosition(position)}
+                      >
+                        <div className="text-xs">{position}</div>
+                        <div className="font-bold">{odd ? odd.toFixed(1) : '-'}</div>
+                      </div>
+                    );
+                  })}
                 </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Previous Bets Section */}
+        {user && (
+          <div className="mb-8 bg-gray-900 rounded-lg shadow-md overflow-hidden border border-gray-800">
+            <div className="bg-black text-white py-3 px-4 font-bold border-b border-gray-800">
+              Your Previous Bets
+            </div>
+            <div className="p-4 overflow-x-auto">
+              {loadingBets ? (
+                <div className="text-center p-4">Loading your bets...</div>
+              ) : userBets.length === 0 ? (
+                <div className="text-center p-4">You haven't placed any bets yet</div>
+              ) : (
+                <table className="min-w-full">
+                  <thead>
+                    <tr className="border-b border-gray-800">
+                      <th className="py-2 px-4 text-left text-gray-400">Date</th>
+                      <th className="py-2 px-4 text-left text-gray-400">Driver</th>
+                      <th className="py-2 px-4 text-left text-gray-400">Position</th>
+                      <th className="py-2 px-4 text-right text-gray-400">Amount</th>
+                      <th className="py-2 px-4 text-right text-gray-400">Odds</th>
+                      <th className="py-2 px-4 text-right text-gray-400">Potential Win</th>
+                      <th className="py-2 px-4 text-center text-gray-400">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {userBets
+                      .sort((a, b) => new Date(b.createdAt?.toDate()) - new Date(a.createdAt?.toDate()))
+                      .slice(0, 5) // Show only the 5 most recent bets
+                      .map((bet) => (
+                        <tr key={bet.id} className="border-b border-gray-800">
+                          <td className="py-2 px-4">
+                            {bet.createdAt?.toDate 
+                              ? bet.createdAt.toDate().toLocaleDateString() 
+                              : 'Unknown date'}
+                          </td>
+                          <td className="py-2 px-4">{bet.driver}</td>
+                          <td className="py-2 px-4">{bet.position}</td>
+                          <td className="py-2 px-4 text-right">{bet.amount}</td>
+                          <td className="py-2 px-4 text-right">{bet.odds.toFixed(2)}</td>
+                          <td className="py-2 px-4 text-right">{bet.potentialWinnings.toFixed(2)}</td>
+                          <td className="py-2 px-4 text-center">
+                            <span className={`px-2 py-1 rounded text-sm ${
+                              bet.status === 'won' 
+                                ? 'bg-green-900/50 text-green-200' 
+                                : bet.status === 'lost' 
+                                  ? 'bg-red-900/50 text-red-200' 
+                                  : 'bg-yellow-900/50 text-yellow-200'
+                            }`}>
+                              {bet.status.charAt(0).toUpperCase() + bet.status.slice(1)}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
               )}
             </div>
           </div>
-        </div>
+        )}
 
         {/* Three Panel Layout */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -327,20 +552,21 @@ export default function HomePage() {
                 </tr>
               </thead>
               <tbody>
-                {drivers.slice(0, 6).map((driver, index) => {
-                  // Generate random odds for each position
-                  const randomOdds = Array.from({ length: 7 }, () => (Math.random() * 8.5 + 1.5).toFixed(1))
-
+                {(firebaseOdds ? Object.keys(firebaseOdds) : drivers.map(d => d.code)).slice(0, 6).map((driverCode, index) => {
+                  const tableOdds = firebaseOdds ? 
+                    Array.from({ length: 7 }, (_, i) => firebaseOdds[driverCode][`P${i+1}`]) :
+                    oddsList[driverCode]?.[0] || [];
+                  
                   return (
                     <tr key={index} className={index < 5 ? "border-b border-gray-800" : ""}>
-                      <td className="py-3 font-bold">{driver.code}</td>
-                      {randomOdds.map((odd, i) => (
+                      <td className="py-3 font-bold">{driverCode}</td>
+                      {tableOdds.map((odd, i) => (
                         <td key={i} className="py-3 text-center">
-                          <span className="text-cyan-400">{odd}</span>
+                          <span className="text-cyan-400">{odd !== undefined ? odd.toFixed(1) : '-'}</span>
                         </td>
                       ))}
                     </tr>
-                  )
+                  );
                 })}
               </tbody>
             </table>

@@ -52,6 +52,7 @@ export default function Menubar({ connected }: Props) {
 		router.prefetch("/schedule");
 		router.prefetch("/settings");
 		router.prefetch("/help");
+		router.prefetch("/bets");
 	}, []);
 
 	return (
@@ -66,6 +67,9 @@ export default function Menubar({ connected }: Props) {
 				</motion.a>
 				<motion.a className="cursor-pointer" whileTap={{ scale: 0.95 }} onClick={() => liveTimingGuard("/schedule")}>
 					Schedule
+				</motion.a>
+				<motion.a className="cursor-pointer" whileTap={{ scale: 0.95 }} onClick={() => liveTimingGuard("/bets")}>
+					Bets
 				</motion.a>
 				<motion.a className="cursor-pointer" whileTap={{ scale: 0.95 }} onClick={() => liveTimingGuard("/settings")}>
 					Settings

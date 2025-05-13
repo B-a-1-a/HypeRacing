@@ -8,6 +8,7 @@ import {
   signOut, 
   onAuthStateChanged
 } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -29,13 +30,14 @@ const isValidConfig = firebaseConfig.apiKey &&
                      firebaseConfig.projectId &&
                      firebaseConfig.appId;
 
-let app, analytics, auth;
+let app, analytics, auth, db;
 
 if (isValidConfig) {
   try {
     app = initializeApp(firebaseConfig);
     analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
     auth = getAuth(app);
+    db = getFirestore(app);
   } catch (error) {
     console.error("Firebase initialization error:", error);
   }
@@ -45,10 +47,12 @@ if (isValidConfig) {
   auth = {
     currentUser: null,
   };
+  db = null;
 }
 
 export { 
   auth, 
+  db,
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signOut, 
