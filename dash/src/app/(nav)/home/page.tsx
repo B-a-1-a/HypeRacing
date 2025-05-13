@@ -5,6 +5,7 @@ import { ChevronDown } from "lucide-react"
 import Link from "next/link"
 import useAuth from "../../../hooks/useAuth"
 import { getOdds, placeBet, getUserBets } from "../../../lib/firebase-service"
+import { UserProfile } from "../../../hooks/useAuth"
 
 interface Driver {
   code: string
@@ -33,7 +34,9 @@ interface Bet {
   odds: number
   potentialWinnings: number
   status: string
-  createdAt: any
+  createdAt: {
+    toDate: () => Date
+  }
 }
 
 export default function HomePage() {
@@ -269,13 +272,6 @@ export default function HomePage() {
               </div>
             )}
           </div>
-
-          {/* Navigation - Simplified to just HOME */}
-          <nav className="flex justify-center">
-            <Link href="/home" className="font-bold text-white border-b-2 border-cyan-400 pb-2">
-              HOME
-            </Link>
-          </nav>
         </div>
       </header>
 
@@ -412,7 +408,11 @@ export default function HomePage() {
                   </thead>
                   <tbody>
                     {userBets
-                      .sort((a, b) => new Date(b.createdAt?.toDate()) - new Date(a.createdAt?.toDate()))
+                      .sort((a, b) => {
+                        const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date();
+                        const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date();
+                        return dateB.getTime() - dateA.getTime();
+                      })
                       .slice(0, 5) // Show only the 5 most recent bets
                       .map((bet) => (
                         <tr key={bet.id} className="border-b border-gray-800">
