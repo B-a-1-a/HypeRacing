@@ -286,8 +286,8 @@ export default function LandingPage() {
               <div className="flex items-center justify-center">
                 <div className="relative h-[400px] w-full overflow-hidden rounded-xl border-2 border-zinc-800 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
                   <Image
-                    src="/placeholder.svg?height=400&width=600"
-                    alt="HypeRacing Dashboard"
+                    src="/f1-bet-image.png"
+                    alt="HypeRacing Betting Interface"
                     fill
                     className="object-cover"
                   />

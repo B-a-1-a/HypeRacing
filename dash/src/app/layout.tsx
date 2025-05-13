@@ -8,6 +8,7 @@ import { env } from "@/env.mjs";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import { AuthProvider } from '../hooks/useAuth';
+import RouteGuard from '@/components/auth/RouteGuard';
 
 export { metadata } from "@/metadata";
 export { viewport } from "@/viewport";
@@ -28,7 +29,9 @@ export default function RootLayout({ children }: Props) {
 
 			<body>
 				<AuthProvider>
-					{children}
+					<RouteGuard>
+						{children}
+					</RouteGuard>
 				</AuthProvider>
 			</body>
 		</html>
