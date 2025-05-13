@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { ChevronDown } from "lucide-react"
 import Link from "next/link"
 import useAuth from "../../../hooks/useAuth"
-import { getOdds, placeBet, getUserBets } from "../../../lib/firebase-service"
+import { getOdds, placeBet, getUserBets, getUserProfile } from "../../../lib/firebase-service"
 import { UserProfile } from "../../../hooks/useAuth"
 
 interface Driver {
@@ -53,6 +53,7 @@ export default function HomePage() {
   const [currentOdds, setCurrentOdds] = useState(0)
   const [userBets, setUserBets] = useState<Bet[]>([])
   const [loadingBets, setLoadingBets] = useState(true)
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
 
   // F1 Drivers data
   const drivers: Driver[] = [
@@ -144,6 +145,13 @@ export default function HomePage() {
     loadBets();
   }, [user, success]);
 
+  // Initialize userProfile from the auth context profile
+  useEffect(() => {
+    if (profile) {
+      setUserProfile(profile);
+    }
+  }, [profile]);
+
   // Generate consistent odds for positions
   useEffect(() => {
     // If Firebase odds are available, don't use the generated odds
@@ -209,7 +217,7 @@ export default function HomePage() {
   }
 
   // Check if HYPE button should be enabled
-  const isHypeEnabled = selectedDriver && selectedPosition && betAmount > 0 && (!profile || betAmount <= profile.points);
+  const isHypeEnabled = selectedDriver && selectedPosition && betAmount > 0 && (!userProfile || betAmount <= userProfile.points);
 
   // Handle HYPE button click (place bet)
   const handleHypeClick = async () => {
@@ -228,7 +236,7 @@ export default function HomePage() {
       return;
     }
 
-    if (profile && betAmount > profile.points) {
+    if (userProfile && betAmount > userProfile.points) {
       setError('Not enough points');
       return;
     }
@@ -240,6 +248,12 @@ export default function HomePage() {
         amount: parseInt(betAmount.toString(), 10),
         odds: currentOdds,
       });
+
+      // Refresh user profile after successful bet
+      if (user) {
+        const updatedProfile = await getUserProfile(user.uid);
+        setUserProfile(updatedProfile as UserProfile);
+      }
 
       setSuccess('Bet placed successfully!');
       setBetAmount(10);
@@ -265,10 +279,10 @@ export default function HomePage() {
             </div>
             
             {/* User Points */}
-            {!authLoading && profile && (
+            {!authLoading && userProfile && (
               <div className="bg-gray-900 px-4 py-2 rounded-lg border border-gray-800">
                 <div className="text-sm text-gray-400">Your HypePoints</div>
-                <div className="text-xl font-bold text-cyan-400">{profile.points.toLocaleString()}</div>
+                <div className="text-xl font-bold text-cyan-400">{userProfile.points.toLocaleString()}</div>
               </div>
             )}
           </div>
@@ -320,14 +334,14 @@ export default function HomePage() {
                   type="number" 
                   className="w-full p-3 border border-gray-700 rounded-md bg-gray-800 text-white text-center"
                   min="1"
-                  max={profile ? profile.points : 1000}
+                  max={userProfile ? userProfile.points : 1000}
                   value={betAmount}
                   disabled={!selectedDriver || !selectedPosition}
                   onChange={(e) => setBetAmount(parseInt(e.target.value, 10))}
                   placeholder="Bet Amount"
                 />
-                {profile && selectedDriver && selectedPosition && (
-                  <p className="text-sm text-gray-400 mt-1">Available: {profile.points} points</p>
+                {userProfile && selectedDriver && selectedPosition && (
+                  <p className="text-sm text-gray-400 mt-1">Available: {userProfile.points} points</p>
                 )}
 
                 {currentOdds > 0 && (

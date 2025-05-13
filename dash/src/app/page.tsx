@@ -174,7 +174,7 @@ export default function LandingPage() {
                     ))}
                   </div>
                   <div className="text-zinc-400">
-                    <span className="font-medium">4,000+</span> bettors trust HypeRacing
+                    <span className="font-medium">200+</span> fans trust HypeRacing
                   </div>
                 </div>
               </div>
