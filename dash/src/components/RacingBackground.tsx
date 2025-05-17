@@ -13,8 +13,12 @@ type SpeedLine = {
 export default function RacingBackground() {
   const racingLinesRef = useRef<HTMLDivElement>(null);
   const [speedLines, setSpeedLines] = useState<SpeedLine[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    // Set mounted state to true
+    setIsMounted(true);
+    
     // Generate consistent speed lines on client only
     const lines = Array.from({ length: 15 }).map(() => ({
       top: Math.random() * 100,
@@ -81,7 +85,7 @@ export default function RacingBackground() {
       <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-cyan-500/5 to-transparent" />
 
       {/* Speed lines - Only rendered after client-side generation */}
-      {speedLines.map((line, i) => (
+      {isMounted && speedLines.map((line, i) => (
         <div
           key={`speed-${i}`}
           className="absolute bg-cyan-400/20"

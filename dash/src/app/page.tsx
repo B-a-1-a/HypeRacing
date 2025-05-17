@@ -84,13 +84,13 @@ export default function LandingPage() {
             key={`speed-${i}`}
             className="absolute bg-cyan-400/20"
             style={{
-              top: `${Math.random() * 100}%`,
+              top: `${Math.random() * 200}%`,
               left: `${Math.random() * 100}%`,
-              width: `${Math.random() * 150 + 50}px`,
+              width: `${Math.random() * 1000 + 50}px`,
               height: "1px",
               opacity: Math.min(scrollPosition * 0.001, 0.3),
               transform: `rotate(${Math.random() * 180}deg)`,
-              filter: "blur(1px)",
+              filter: "blur(10px)",
             }}
           />
         ))}
@@ -164,7 +164,7 @@ export default function LandingPage() {
                     className="border-zinc-700 text-white hover:bg-zinc-800 hover:text-cyan-400"
                     asChild
                   >
-                    <Link href="#demo">Watch Demo</Link>
+                    <Link href="https://www.youtube.com/watch?v=SSoqvRdXXhc" target="_blank">Watch Demo</Link>
                   </Button>
                 </div>
                 <div className="flex items-center space-x-4 text-sm">

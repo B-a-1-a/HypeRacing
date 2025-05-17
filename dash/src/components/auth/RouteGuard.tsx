@@ -24,10 +24,15 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
     
     const isPublicRoute = publicRoutes.includes(pathname);
     
-    // If user is authenticated and trying to access public routes
+    // If user is authenticated and trying to access public routes (including landing page)
     if (user && isPublicRoute) {
-      console.log('Authenticated user trying to access public route, redirecting to dashboard');
-      router.push('/dashboard');
+      if (pathname === '/') {
+        console.log('Authenticated user trying to access landing page, redirecting to home');
+        router.push('/home');
+      } else {
+        console.log('Authenticated user trying to access login/signup, redirecting to home');
+        router.push('/home');
+      }
     }
     
     // If user is not authenticated and trying to access protected routes

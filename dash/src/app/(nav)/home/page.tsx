@@ -408,53 +408,55 @@ export default function HomePage() {
               ) : userBets.length === 0 ? (
                 <div className="text-center p-4">You haven't placed any bets yet</div>
               ) : (
-                <table className="min-w-full">
-                  <thead>
-                    <tr className="border-b border-gray-800">
-                      <th className="py-2 px-4 text-left text-gray-400">Date</th>
-                      <th className="py-2 px-4 text-left text-gray-400">Driver</th>
-                      <th className="py-2 px-4 text-left text-gray-400">Position</th>
-                      <th className="py-2 px-4 text-right text-gray-400">Amount</th>
-                      <th className="py-2 px-4 text-right text-gray-400">Odds</th>
-                      <th className="py-2 px-4 text-right text-gray-400">Potential Win</th>
-                      <th className="py-2 px-4 text-center text-gray-400">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {userBets
-                      .sort((a, b) => {
-                        const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date();
-                        const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date();
-                        return dateB.getTime() - dateA.getTime();
-                      })
-                      .slice(0, 5) // Show only the 5 most recent bets
-                      .map((bet) => (
-                        <tr key={bet.id} className="border-b border-gray-800">
-                          <td className="py-2 px-4">
-                            {bet.createdAt?.toDate 
-                              ? bet.createdAt.toDate().toLocaleDateString() 
-                              : 'Unknown date'}
-                          </td>
-                          <td className="py-2 px-4">{bet.driver}</td>
-                          <td className="py-2 px-4">{bet.position}</td>
-                          <td className="py-2 px-4 text-right">{bet.amount}</td>
-                          <td className="py-2 px-4 text-right">{bet.odds.toFixed(2)}</td>
-                          <td className="py-2 px-4 text-right">{bet.potentialWinnings.toFixed(2)}</td>
-                          <td className="py-2 px-4 text-center">
-                            <span className={`px-2 py-1 rounded text-sm ${
-                              bet.status === 'won' 
-                                ? 'bg-green-900/50 text-green-200' 
-                                : bet.status === 'lost' 
-                                  ? 'bg-red-900/50 text-red-200' 
-                                  : 'bg-yellow-900/50 text-yellow-200'
-                            }`}>
-                              {bet.status.charAt(0).toUpperCase() + bet.status.slice(1)}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
+                <div className="max-h-80 overflow-y-auto">
+                  <table className="min-w-full">
+                    <thead className="sticky top-0 bg-gray-900 z-10">
+                      <tr className="border-b border-gray-800">
+                        <th className="py-2 px-4 text-left text-gray-400">Date</th>
+                        <th className="py-2 px-4 text-left text-gray-400">Driver</th>
+                        <th className="py-2 px-4 text-left text-gray-400">Position</th>
+                        <th className="py-2 px-4 text-right text-gray-400">Amount</th>
+                        <th className="py-2 px-4 text-right text-gray-400">Odds</th>
+                        <th className="py-2 px-4 text-right text-gray-400">Potential Win</th>
+                        <th className="py-2 px-4 text-center text-gray-400">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {userBets
+                        .sort((a, b) => {
+                          const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date();
+                          const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date();
+                          return dateB.getTime() - dateA.getTime();
+                        })
+                        // Removed the slice(0, 5) to show all bets
+                        .map((bet) => (
+                          <tr key={bet.id} className="border-b border-gray-800">
+                            <td className="py-2 px-4">
+                              {bet.createdAt?.toDate 
+                                ? bet.createdAt.toDate().toLocaleDateString() 
+                                : 'Unknown date'}
+                            </td>
+                            <td className="py-2 px-4">{bet.driver}</td>
+                            <td className="py-2 px-4">{bet.position}</td>
+                            <td className="py-2 px-4 text-right">{bet.amount}</td>
+                            <td className="py-2 px-4 text-right">{bet.odds.toFixed(2)}</td>
+                            <td className="py-2 px-4 text-right">{bet.potentialWinnings.toFixed(2)}</td>
+                            <td className="py-2 px-4 text-center">
+                              <span className={`px-2 py-1 rounded text-sm ${
+                                bet.status === 'won' 
+                                  ? 'bg-green-900/50 text-green-200' 
+                                  : bet.status === 'lost' 
+                                    ? 'bg-red-900/50 text-red-200' 
+                                    : 'bg-yellow-900/50 text-yellow-200'
+                              }`}>
+                                {bet.status.charAt(0).toUpperCase() + bet.status.slice(1)}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           </div>
@@ -555,27 +557,25 @@ export default function HomePage() {
             <table className="w-full min-w-max">
               <thead>
                 <tr className="border-b border-gray-800">
-                  <th className="text-left py-2 text-gray-400 font-medium">Driver</th>
-                  <th className="text-center py-2 text-gray-400 font-medium">P1</th>
-                  <th className="text-center py-2 text-gray-400 font-medium">P2</th>
-                  <th className="text-center py-2 text-gray-400 font-medium">P3</th>
-                  <th className="text-center py-2 text-gray-400 font-medium">P4</th>
-                  <th className="text-center py-2 text-gray-400 font-medium">P5</th>
-                  <th className="text-center py-2 text-gray-400 font-medium">P6</th>
-                  <th className="text-center py-2 text-gray-400 font-medium">P7</th>
+                  <th className="text-left py-2 text-gray-400 font-medium w-16">Driver</th>
+                  {Array.from({ length: 20 }, (_, i) => (
+                    <th key={i} className="text-center py-2 text-gray-400 font-medium text-xs">P{i+1}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {(firebaseOdds ? Object.keys(firebaseOdds) : drivers.map(d => d.code)).slice(0, 6).map((driverCode, index) => {
+                {(firebaseOdds ? Object.keys(firebaseOdds) : drivers.map(d => d.code))
+                  .sort() // Sort driver codes alphabetically
+                  .map((driverCode, index) => {
                   const tableOdds = firebaseOdds ? 
-                    Array.from({ length: 7 }, (_, i) => firebaseOdds[driverCode][`P${i+1}`]) :
-                    oddsList[driverCode]?.[0] || [];
+                    Array.from({ length: 20 }, (_, i) => firebaseOdds[driverCode][`P${i+1}`]) :
+                    oddsList[driverCode]?.[1] || [];
                   
                   return (
-                    <tr key={index} className={index < 5 ? "border-b border-gray-800" : ""}>
-                      <td className="py-3 font-bold">{driverCode}</td>
+                    <tr key={index} className={index < (firebaseOdds ? Object.keys(firebaseOdds).length : drivers.length) - 1 ? "border-b border-gray-800" : ""}>
+                      <td className="py-2 font-bold text-sm">{driverCode}</td>
                       {tableOdds.map((odd, i) => (
-                        <td key={i} className="py-3 text-center">
+                        <td key={i} className="py-2 text-center text-xs">
                           <span className="text-cyan-400">{odd !== undefined ? odd.toFixed(1) : '-'}</span>
                         </td>
                       ))}

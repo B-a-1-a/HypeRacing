@@ -83,6 +83,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setLoading(true);
       await signInWithEmailAndPassword(auth as Auth, email, password);
+      
+      // Redirect to home page after successful sign-in
+      router.push('/home');
+      
       return { success: true };
     } catch (err: any) {
       console.error("Sign in error:", err);
@@ -103,6 +107,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       // Initialize user profile in Firestore
       await initializeUserProfile(userCredential.user.uid, email);
+      
+      // Redirect to home page after successful sign-up
+      router.push('/home');
       
       return { success: true };
     } catch (err: any) {

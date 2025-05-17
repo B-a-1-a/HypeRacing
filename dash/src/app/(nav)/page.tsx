@@ -28,6 +28,12 @@ export default function Home() {
 							Check Schedule
 						</Button>
 					</Link>
+					
+					<Link href="https://www.youtube.com/watch?v=SSoqvRdXXhc" target="_blank" rel="noopener noreferrer">
+						<Button className="!rounded-xl border-2 border-zinc-700 !bg-transparent p-4 font-medium">
+							Watch Demo
+						</Button>
+					</Link>
 				</div>
 
 				<ScrollHint />
