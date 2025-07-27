@@ -8,13 +8,7 @@ export default function Footer() {
 					The Dashboard App is a fork of <TextLink website="https://github.com/slowlydev/f1-dash">slowlydev's</TextLink> feel free to support the original project.
 				</p>
 
-				<p>
-					Get{" "}
-					<Link className="text-blue-500" href="/help">
-						Help
-					</Link>
-					.
-				</p>
+
 
 				<p>Version: {process.env.version}</p>
 			</div>

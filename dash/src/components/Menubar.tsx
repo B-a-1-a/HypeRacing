@@ -7,7 +7,6 @@ import Image from "next/image";
 
 import Modal from "@/components/Modal";
 import Button from "@/components/Button";
-import ProfileMenu from "./auth/ProfileMenu";
 
 import alertIcon from "public/icons/alert-triangle.svg";
 import ConnectionStatus from "./ConnectionStatus";
@@ -47,19 +46,14 @@ export default function Menubar({ connected }: Props) {
 	};
 
 	useEffect(() => {
-		router.prefetch("/home");
 		router.prefetch("/dashboard");
 		router.prefetch("/schedule");
 		router.prefetch("/settings");
-		router.prefetch("/help");
 	}, []);
 
 	return (
 		<div className="flex select-none flex-wrap gap-x-4 gap-y-2 px-2 justify-between w-full" id="walkthrough-menu">
 			<div className="flex flex-wrap gap-x-4 gap-y-2">
-				<motion.a className="cursor-pointer" whileTap={{ scale: 0.95 }} onClick={() => liveTimingGuard("/home")}>
-					Home
-				</motion.a>
 				{/* TODO add spoiler guard (check if race is in progress, then show modal) */}
 				<motion.a className="cursor-pointer" whileTap={{ scale: 0.95 }} onClick={() => router.push("/dashboard")}>
 					Dashboard
@@ -70,9 +64,6 @@ export default function Menubar({ connected }: Props) {
 				<motion.a className="cursor-pointer" whileTap={{ scale: 0.95 }} onClick={() => liveTimingGuard("/settings")}>
 					Settings
 				</motion.a>
-				<motion.a className="cursor-pointer" whileTap={{ scale: 0.95 }} onClick={() => liveTimingGuard("/help")}>
-					Help
-				</motion.a>
 			</div>
 
 			<div className="flex items-center gap-4">
@@ -82,7 +73,6 @@ export default function Menubar({ connected }: Props) {
 						<ConnectionStatus connected={connected} />
 					</>
 				)}
-				<ProfileMenu />
 			</div>
 
 			<Modal open={liveWarning}>
